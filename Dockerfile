@@ -1,13 +1,29 @@
-# Usar a imagem base do Laravel Sail
-FROM sail-8.4/app
+FROM serversideup/php:8.3-fpm-nginx
 
-# Definir o usuário e grupo corretos.....
-ARG WWWUSER=33
-ARG WWWGROUP=33
+ENV PHP_OPCACHE_ENABLE=1
 
-# Garantir que o usuário www-data tenha as permissões corretas
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache && \
-    chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
+USER root
 
-# Definir o usuário padrão do contêiner como www-data
+# Install Node.js
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+    && apt-get update \
+    && apt-get install -y nodejs \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy application files
+COPY --chown=www-data:www-data . /var/www/html
+
+# Switch to non-root user
 USER www-data
+
+# Install dependencies and build
+RUN npm ci \
+    && npm run build \
+    && rm -rf /var/www/html/.npm
+
+# Install PHP dependencies
+RUN composer install --no-interaction --optimize-autoloader --no-dev
+
+# Remove composer cache
+RUN rm -rf /var/www/html/.composer/cache
