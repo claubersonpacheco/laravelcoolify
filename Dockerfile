@@ -1,7 +1,7 @@
 # Usar a imagem base do Laravel Sail
 FROM sail-8.4/app
 
-# Definir o usuário e grupo corretos
+# Definir o usuário e grupo corretos.....
 ARG WWWUSER=33
 ARG WWWGROUP=33
 
